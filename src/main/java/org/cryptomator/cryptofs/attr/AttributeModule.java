@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Module
 abstract class AttributeModule {
-	
+
 	@Provides
 	@AttributeScoped
 	public static Optional<OpenCryptoFile> provideOpenCryptoFile(OpenCryptoFiles openCryptoFiles, Path ciphertextPath) {
@@ -36,5 +36,5 @@ abstract class AttributeModule {
 			return new CryptoBasicFileAttributes(ciphertextAttributes, ciphertextFileType, ciphertextPath, cryptor, openCryptoFile);
 		}
 	}
-	
+
 }

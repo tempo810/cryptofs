@@ -38,6 +38,9 @@ public class AttributeViewProvider {
 	 * @see Files#getFileAttributeView(java.nio.file.Path, Class, java.nio.file.LinkOption...)
 	 */
 	public <A extends FileAttributeView> A getAttributeView(CryptoPath cleartextPath, Class<A> type, LinkOption... options) {
+//		if (type == UserDefinedFileAttributeView.class) {
+//			return Files.getFileAttributeView(cleartextPath, type, options);
+//		}
 		Optional<FileAttributeView> view = attrViewComponentFactory.create(cleartextPath, type, options).attributeView();
 		if (view.isPresent() && type.isInstance(view.get())) {
 			return type.cast(view.get());

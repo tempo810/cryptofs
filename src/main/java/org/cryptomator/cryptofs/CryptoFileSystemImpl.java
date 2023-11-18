@@ -18,13 +18,14 @@ import org.cryptomator.cryptofs.common.CiphertextFileType;
 import org.cryptomator.cryptofs.common.DeletingFileVisitor;
 import org.cryptomator.cryptofs.common.FinallyUtil;
 import org.cryptomator.cryptofs.dir.CiphertextDirectoryDeleter;
-import org.cryptomator.cryptofs.dir.DirectoryStreamFilters;
 import org.cryptomator.cryptofs.dir.DirectoryStreamFactory;
+import org.cryptomator.cryptofs.dir.DirectoryStreamFilters;
 import org.cryptomator.cryptofs.fh.OpenCryptoFiles;
 import org.cryptomator.cryptolib.api.Cryptor;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.AccessMode;
@@ -56,6 +57,7 @@ import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Arrays;
 import java.util.Collections;
@@ -547,7 +549,16 @@ class CryptoFileSystemImpl extends CryptoFileSystem {
 			dstAttrView.setReadOnly(srcAttrs.isReadOnly());
 			dstAttrView.setSystem(srcAttrs.isSystem());
 		}
-		// TODO: copy user attributes
+		if (supportedAttributeViewTypes.contains(AttributeViewType.USER)) {
+			UserDefinedFileAttributeView srcUserDefinedFileAttributes = Files.getFileAttributeView(src, UserDefinedFileAttributeView.class);
+			UserDefinedFileAttributeView dstAttrView = Files.getFileAttributeView(dst, UserDefinedFileAttributeView.class);
+			for (String userDefinedAttr : srcUserDefinedFileAttributes.list()) {
+				ByteBuffer buffer = ByteBuffer.allocate(srcUserDefinedFileAttributes.size(userDefinedAttr));
+				srcUserDefinedFileAttributes.read(userDefinedAttr, buffer);
+				buffer.flip();
+				dstAttrView.write(userDefinedAttr, buffer);
+			}
+		}
 	}
 
 	void move(CryptoPath cleartextSource, CryptoPath cleartextTarget, CopyOption... options) throws IOException {
